@@ -7,7 +7,7 @@
         "ios": "2.2074"
     },
     "version": "v1.0.0",
-    "id": "BerriesArmy.smartsnap",
+    "id": "berriesarmy.smartsnap",
     "name": "Smart Snap",
     "developer": "BerriesArmy",
     "description": "Snaps dragged objects to nearby object edges and centers in the editor, like a design-tool smart guide.",
