@@ -1,0 +1,57 @@
+{
+    "geode": "v4.0.0",
+    "gd": {
+        "win": "2.2074",
+        "android": "2.2074",
+        "mac": "2.2074",
+        "ios": "2.2074"
+    },
+    "version": "v1.0.0",
+    "id": "BerriesArmy.smartsnap",
+    "name": "Smart Snap",
+    "developer": "BerriesArmy",
+    "description": "Snaps dragged objects to nearby object edges and centers in the editor, like a design-tool smart guide.",
+    "repository": "https://github.com/BerriesArmy/smart-snap",
+    "tags": ["editor", "utility", "enhancement"],
+    "dependencies": [
+        {
+            "id": "geode.node-ids",
+            "version": ">=1.10.0",
+            "importance": "required"
+        }
+    ],
+    "settings": {
+        "enabled": {
+            "name": "Enable Smart Snap",
+            "description": "Master toggle for edge/center snapping in the editor.",
+            "type": "bool",
+            "default": true
+        },
+        "snap-distance": {
+            "name": "Snap Distance",
+            "description": "How close (in editor units) an edge needs to be before it snaps.",
+            "type": "float",
+            "default": 6.0,
+            "min": 1.0,
+            "max": 20.0
+        },
+        "snap-to-centers": {
+            "name": "Snap to Centers",
+            "description": "Also snap to the horizontal/vertical center of nearby objects, not just edges.",
+            "type": "bool",
+            "default": true
+        },
+        "show-guides": {
+            "name": "Show Guide Lines",
+            "description": "Draw a line across the screen when a snap is active.",
+            "type": "bool",
+            "default": true
+        },
+        "disable-key": {
+            "name": "Disable-While-Held Key",
+            "description": "Hold this key while dragging to temporarily disable snapping.",
+            "type": "string",
+            "default": "shift"
+        }
+    }
+}
