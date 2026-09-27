@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: Windows
+            os: windows-latest
+            id: win
+          - name: MacOS
+            os: macos-latest
+            id: mac
+          - name: Android32
+            os: ubuntu-latest
+            id: android32
+          - name: Android64
+            os: ubuntu-latest
+            id: android64
+
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build mod
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          combine: false
+
+  release:
+    name: Release mod
+    needs: ['build']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hiimjasmine00/release-geode-mod@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: ./
+          replace: false
+          draft: false
+          prerelease: false
