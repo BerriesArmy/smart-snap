@@ -13,16 +13,12 @@ jobs:
         config:
           - name: Windows
             os: windows-latest
-            id: win
           - name: MacOS
             os: macos-latest
-            id: mac
           - name: Android32
             os: ubuntu-latest
-            id: android32
           - name: Android64
             os: ubuntu-latest
-            id: android64
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -34,4 +30,18 @@ jobs:
         uses: geode-sdk/build-geode-mod@main
         with:
           sdk: nightly
-          combine: false
+          combine: true
+
+  package:
+    name: Package builds
+    needs: ['build']
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: geode-sdk/build-geode-mod/combine@main
+        id: build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Build Output
+          path: ${{ steps.build.outputs.build-output }}
