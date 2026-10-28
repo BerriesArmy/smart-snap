@@ -15,39 +15,40 @@ namespace settings {
     bool showGuides()   { return Mod::get()->getSettingValue<bool>("show-guides"); }
 }
 
-// Draws the temporary alignment line(s) while a snap is active. One node,
-// reused every frame, cleared each time so we're not leaking CCDrawNodes.
-class SnapGuideNode : public CCDrawNode {
-public:
-    static SnapGuideNode* get(CCNode* editorLayer) {
-        static constexpr int kTag = 0x534e4150; // "SNAP" in hex, arbitrary unique tag
-        auto existing = static_cast<SnapGuideNode*>(editorLayer->getChildByTag(kTag));
-        if (existing) return existing;
+// Helpers for the temporary alignment line(s) shown while a snap is active.
+// Uses a plain CCDrawNode (tagged so we can find and reuse it each frame)
+// instead of a subclass, since CCDrawNode::create() returns CCDrawNode*.
+namespace guide {
+    static constexpr int kTag = 0x534e4150; // "SNAP" in hex, arbitrary unique tag
+    static constexpr ccColor4F kColor = {1.f, 0.35f, 0.6f, 1.f};
 
-        auto node = SnapGuideNode::create();
+    inline CCDrawNode* get(CCNode* editorLayer) {
+        if (auto existing = static_cast<CCDrawNode*>(editorLayer->getChildByTag(kTag))) {
+            return existing;
+        }
+        auto node = CCDrawNode::create();
         node->setTag(kTag);
         node->setZOrder(1000); // draw above objects
         editorLayer->addChild(node);
         return node;
     }
 
-    void showVertical(float x, CCSize const& winSize) {
-        clear();
-        drawSegment({x, 0}, {x, winSize.height}, 1.f, {1.f, 0.35f, 0.6f, 1.f});
+    inline void showVertical(CCDrawNode* node, float x, CCSize const& winSize) {
+        node->clear();
+        node->drawSegment({x, 0}, {x, winSize.height}, 1.f, kColor);
     }
 
-    void showHorizontal(float y, CCSize const& winSize) {
-        // NOTE: if both axes snap in the same frame you'll want to accumulate
-        // instead of clearing here — left as a follow-up once the basic
-        // version is working, so you can see each axis independently first.
-        clear();
-        drawSegment({0, y}, {winSize.width, y}, 1.f, {1.f, 0.35f, 0.6f, 1.f});
+    inline void showHorizontal(CCDrawNode* node, float y, CCSize const& winSize) {
+        // If both axes snap in the same frame you'll want to accumulate
+        // instead of clearing here; left as a follow-up.
+        node->clear();
+        node->drawSegment({0, y}, {winSize.width, y}, 1.f, kColor);
     }
 
-    void hide() {
-        clear();
+    inline void hide(CCDrawNode* node) {
+        node->clear();
     }
-};
+}
 
 class $modify(SmartSnapEditorUI, EditorUI) {
     // Gathers nearby objects' bounding boxes, excluding the object(s)
@@ -128,11 +129,11 @@ class $modify(SmartSnapEditorUI, EditorUI) {
         if (resultY.snapped) proposedPos.y += resultY.snappedValue;
 
         if (settings::showGuides()) {
-            auto guide = SnapGuideNode::get(this);
+            auto node = guide::get(this);
             auto winSize = CCDirector::sharedDirector()->getWinSize();
-            if (resultX.snapped) guide->showVertical(resultX.guideLineCoord, winSize);
-            else if (resultY.snapped) guide->showHorizontal(resultY.guideLineCoord, winSize);
-            else guide->hide();
+            if (resultX.snapped) guide::showVertical(node, resultX.guideLineCoord, winSize);
+            else if (resultY.snapped) guide::showHorizontal(node, resultY.guideLineCoord, winSize);
+            else guide::hide(node);
         }
     }
     */
