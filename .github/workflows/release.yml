@@ -3,6 +3,9 @@ name: Release
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -11,16 +14,12 @@ jobs:
         config:
           - name: Windows
             os: windows-latest
-            id: win
           - name: MacOS
             os: macos-latest
-            id: mac
           - name: Android32
             os: ubuntu-latest
-            id: android32
           - name: Android64
             os: ubuntu-latest
-            id: android64
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -32,19 +31,41 @@ jobs:
         uses: geode-sdk/build-geode-mod@main
         with:
           sdk: nightly
-          combine: false
+          combine: true
 
-  release:
-    name: Release mod
+  package:
+    name: Package builds
     needs: ['build']
     runs-on: ubuntu-latest
+
+    steps:
+      - uses: geode-sdk/build-geode-mod/combine@main
+        id: build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Build Output
+          path: ${{ steps.build.outputs.build-output }}
+
+  release:
+    name: Publish GitHub release
+    needs: ['package']
+    runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: hiimjasmine00/release-geode-mod@main
+      - uses: actions/download-artifact@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: ./
-          replace: false
-          draft: false
-          prerelease: false
+          name: Build Output
+          path: out
+
+      - name: Read version from mod.json
+        id: ver
+        run: echo "version=$(jq -r .version mod.json)" >> "$GITHUB_OUTPUT"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.version }}
+          name: ${{ steps.ver.outputs.version }}
+          files: out/*.geode
